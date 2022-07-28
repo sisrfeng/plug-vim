@@ -98,8 +98,7 @@ Add a vim-plug section to your `~/.vimrc` (or `stdpath('config') . '/init.vi
  2. List the plugins with `Plug` commands
  3. `call plug#end()` to update 'runtimepath' and initialize plugin system
    - Automatically executes `filetype plugin indent on` and `syntax enable`.
-     You can revert the settings after the call.
-     e.g. `filetype indent off`,  `syntax off`, etc.
+     You can revert the settings after the call. e.g. `filetype indent off`,  `syntax off`, etc.
 
 
 Example
@@ -336,5 +335,5 @@ mit
 ==============================================================================
 vim:tw=78:sw=2:ts=2:ft=help:norl:nowrap:
 leo_DIY
-DIY_again
+DIY_v2
 DIY_2  vim:filetype=help:syntax=help:
