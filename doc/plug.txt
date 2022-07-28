@@ -332,8 +332,7 @@ want to examine the output of `vim --startuptime` before applying the option.
 mit
 
 
-==============================================================================
 vim:tw=78:sw=2:ts=2:ft=help:norl:nowrap:
 leo_DIY
-DIY_v2
+DIY_again
 DIY_2  vim:filetype=help:syntax=help:
