@@ -189,7 +189,7 @@ function! plug#begin(...)
     "\ 每次call ReloaD() 都会到这里
     "\ echom 'plug#begin()开始'
     if a:0 > 0
-        let s:plug_home_org = a:1
+        let s:plug_home = a:1
         let home = s:path(s:plug_fnamemodify(s:plug_expand(a:1), ':p'))
     elseif exists('g:plug_home')
         let home = s:path(g:plug_home)
@@ -201,6 +201,7 @@ function! plug#begin(...)
         return s:err('Unable to determine plug home. Try calling plug#begin() with a path argument.')
     endif
     echom 'home是' . home
+    "\ /home/wf/.local/share/nvim/PL
 
     if s:plug_fnamemodify(home, ':t') ==# 'plugin' && s:plug_fnamemodify(home, ':h') ==# s:first_rtp
         return s:err('Invalid plug home. '.home.' is a standard Vim runtime path and is not allowed.')
@@ -661,7 +662,7 @@ function! s:lod_map(map, names, with_prefix, prefix)
 endfunction
 
 function! plug#(repo, ...)
-    echom      '进入函数    plug#(repo, ...) '
+    "\ echom      '进入函数    plug#(repo, ...) '
     if a:0 > 1
         return s:err('Invalid number of arguments (1..2)')
     endif
