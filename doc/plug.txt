@@ -146,7 +146,6 @@ Example
     call plug#end()
 
 *:PlugInstall*
-
     Reload .vimrc and `:PlugInstall` to install plugins.
 
 
