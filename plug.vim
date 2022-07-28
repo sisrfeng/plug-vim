@@ -40,7 +40,7 @@ let s:cpo_save = &cpo
 set cpo&vim
 
 " var
-    let s:plug_src = 'https://github.com/junegunn/vim-plug.git'
+    let s:plug_src = 'https://github.com/sisrfeng/pluger'
     let s:plug_tab = get(s:, 'plug_tab', -1)
     let s:plug_buf = get(s:, 'plug_buf', -1)
     let s:mac_gui = has('gui_macvim') && has('gui_running')
@@ -186,7 +186,8 @@ endfunction
 
 
 function! plug#begin(...)
-    echom 'plug#begin()开始'
+    "\ 每次call ReloaD() 都会到这里
+    "\ echom 'plug#begin()开始'
     if a:0 > 0
         let s:plug_home_org = a:1
         let home = s:path(s:plug_fnamemodify(s:plug_expand(a:1), ':p'))
@@ -2459,13 +2460,13 @@ function! s:upgrade()
         endif
 
         if readfile(s:me) ==# readfile(new)
-            echo 'vim-plug is already up-to-date'
+            echo '插件管理器 本就是最新'
             return 0
         else
             call rename(s:me, s:me . '.old')
             call rename(new, s:me)
             unlet g:loaded_plug
-            echo 'vim-plug has been upgraded'
+            echo '插件管理器upgrade了'
             return 1
         endif
     finally
@@ -2757,6 +2758,6 @@ if exists('g:plugs')
     call s:define_commands()
 endif
 
-let &cpo = s:cpo_save
-unlet s:cpo_save
-echom '结束/home/wf/.local/share/nvim/plugged/plug-vim/plug.vim'
+let &cpo = s:cpo_save  | unlet s:cpo_save
+
+"\ echom '结束/home/wf/.local/share/nvim/plugged/plug-vim/plug.vim'
