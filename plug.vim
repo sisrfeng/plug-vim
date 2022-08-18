@@ -1,27 +1,10 @@
-" ============================
-    " https://github.com/junegunn/vim-plug
-    " Copyright (c) 2017 Junegunn Choi
+" https://github.com/junegunn/vim-plug
+" Copyright (c) 2017 Junegunn Choi
     " MIT License
-            " Permission is hereby granted, free of charge, to any person obtaining
-            " a copy of this software and associated documentation files (the
-            " "Software"), to deal in the Software without restriction, including
-            " without limitation the rights to use, copy, modify, merge, publish,
-            " distribute, sublicense, and/or sell copies of the Software, and to
-            " permit persons to whom the Software is furnished to do so, subject to
-            " the following conditions:
-            "
-            " The above copyright notice and this permission notice shall be
-            " included in all copies or substantial portions of the Software.
-            "
-            " THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-            " EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-            " MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-            " NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
-            " LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
-            " OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
-            " WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-if exists('g:loaded_plug')  | finish  | en
+if exists('g:loaded_plug')
+    finish
+en
 let g:loaded_plug = 1
 
 let s:cpo_save = &cpo  | set cpo&vim
@@ -32,8 +15,6 @@ let s:cpo_save = &cpo  | set cpo&vim
     let s:plug_buf = get(s:, 'plug_buf', -1)
     let s:mac_gui = has('gui_macvim') && has('gui_running')
     let s:is_win = has('win32')
-    let s:nvim = has('nvim-0.2') || (has('nvim') && exists('*jobwait') && !s:is_win)
-    let s:vim8 = has('patch-8.0.0039') && exists('*job_start')
     if s:is_win && &shellslash
         set noshellslash
         let s:me = resolve(expand('<sfile>:p'))
@@ -51,9 +32,6 @@ let s:cpo_save = &cpo  | set cpo&vim
     let s:loaded = get(s:, 'loaded', {})
     let s:triggers = get(s:, 'triggers', {})
 
-fun! s:is_powershell(shell)
-    return a:shell =~# 'powershell\(\.exe\)\?$' || a:shell =~# 'pwsh\(\.exe\)\?$'
-endf
 
 fun! s:isabsolute(dir) abort
     return a:dir =~# '^/' || (has('win32') && a:dir =~? '^\%(\\\|[A-Z]:\)')
@@ -178,28 +156,24 @@ fun! plug#begin(...)
     "\ 每次call ReloaD() 都会到这里
     "\ echom 'plug#begin()开始'
     if a:0 > 0
-        let home = s:path(s:plug_fnamemodify(s:plug_expand(a:1), ':p'))
-    elseif exists('g:plug_home')
-        let home = s:path(g:plug_home)
-    elseif has('nvim')
-        let home = stdpath('data') . '/plugged'
-    elseif !empty(&rtp)
-        let home = s:path(split(&rtp, ',')[0]) . '/plugged'
+        let PL_home = s:path(s:plug_fnamemodify(s:plug_expand(a:1), ':p'))
+    elseif exists('g:plug_PL_home')
+        let PL_home = s:path(g:plug_home)
     el
-        return s:err('Unable to determine plug home. Try calling plug#begin() with a path argument.')
+        let PL_home = stdpath('data') . '/plugged'
+        "\ return s:err('Unable to determine plug home. Try calling plug#begin() with a path argument.')
     en
 
-    echom 'home是' . home
-    "\ /home/wf/.local/share/nvim/PL
+    "\ echom 'PL_home是' . PL_home
 
-    if s:plug_fnamemodify(home, ':t') ==# 'plugin' && s:plug_fnamemodify(home, ':h') ==# s:first_rtp
-        return s:err('Invalid plug home. '.home.' is a standard Vim runtime path and is not allowed.')
+    if s:plug_fnamemodify(PL_home, ':t') ==# 'plugin' && s:plug_fnamemodify(PL_home, ':h') ==# s:first_rtp
+        return s:err('Invalid plug home. '.PL_home.' is a standard Vim runtime path and is not allowed.')
     en
 
-    let g:plug_home = home
-    let g:plugs = {}
+    let g:plug_home   = PL_home
+    let g:plugs       = {}
     let g:plugs_order = []
-    let s:triggers = {}
+    let s:triggers    = {}
 
     call s:define_commands()
     return 1
@@ -208,21 +182,14 @@ endf
 
 fun! s:define_commands()
     com!  -nargs=+ -bar Plug call plug#(<args>)
+    com!  -nargs=+ -bar PL call plug#(<args>)
     if !executable('git')
-        return s:err('`git` executable not found. Most commands will not be available. To suppress this message, prepend `silent!` to `call plug#begin(...)`.')
+        return s:err('没git寸步难行. To suppress this message, prepend `silent!` to `call plug#begin(...)`.')
     en
-    if has('win32')
-    \ && &shellslash
-    \ && (&shell =~# 'cmd\(\.exe\)\?$' || s:is_powershell(&shell))
-        return s:err('vim-plug does not support shell, ' . &shell . ', when shellslash is set.')
-    en
-    if !has('nvim')
-        \ && (has('win32') || has('win32unix'))
-        \ && !has('multi_byte')
-        return s:err('Vim needs +multi_byte feature on Windows to run shell commands. Enable +iconv for best results.')
-    en
-    com!  -nargs=* -bar -bang -complete=customlist,s:names PlugInstall call s:install(<bang>0, [<f-args>])
-    com!  -nargs=* -bar -bang -complete=customlist,s:names PlugUpdate  call s:update(<bang>0, [<f-args>])
+
+    com!  -nargs=* -bar -bang -complete=customlist,s:names   PlugInstall call s:install(<bang>0, [<f-args>])
+    com!  -nargs=* -bar -bang -complete=customlist,s:names   PlugUpdate  call s:update(<bang>0, [<f-args>])
+
     com!  -nargs=0 -bar -bang                              PlugClean call s:clean(<bang>0)
     com!  -nargs=0 -bar                                    PlugUpgrade if s:upgrade() | execute 'source' s:esc(s:me) | endif
     com!  -nargs=0 -bar                                    PlugStatus  call s:status()
@@ -454,9 +421,6 @@ if s:is_win
         let batchfile = s:plug_tempname().'.bat'
         call writefile(s:wrap_cmds(a:cmd), batchfile)
         let cmd = plug#shellescape(batchfile, {'shell': &shell, 'script': 0})
-        if s:is_powershell(&shell)
-            let cmd = '& ' . cmd
-        en
         return [batchfile, cmd]
     endf
 el
@@ -728,13 +692,7 @@ fun! s:infer_properties(name, repo)
     en
 endf
 
-fun! s:install(force, names)
-    call s:update_impl(0, a:force, a:names)
-endf
 
-fun! s:update(force, names)
-    call s:update_impl(1, a:force, a:names)
-endf
 
 fun! plug#helptags()
     if !exists('g:plugs')
@@ -942,9 +900,7 @@ fun! s:chsh(swap)
     let prev = [&shell, &shellcmdflag, &shellredir]
     if !s:is_win  | set shell=sh  | en
     if a:swap
-        if s:is_powershell(&shell)
-            let &shellredir = '2>&1 | Out-File -Encoding UTF8 %s'
-        elseif &shell =~# 'sh' || &shell =~# 'cmd\(\.exe\)\?$'
+        if &shell =~# 'sh' || &shell =~# 'cmd\(\.exe\)\?$'
             set shellredir=>%s\ 2>&1
         en
     en
@@ -1041,8 +997,11 @@ fun! s:do(pull, force, todo)
                 let error = 'Invalid hook type'
             en
             call s:switch_in()
-            call setline(4, empty(error) ? (getline(4) . 'OK')
-                                                                 \ : ('x' . getline(4)[1:] . error))
+            call setline(4, empty(error)
+                        \? (getline(4) . 'OK')
+                       \ : ('x' . getline(4)[1:] . error)
+                  \)
+
             if !empty(error)
                 call add(s:update.errors, name)
                 call s:regress_bar()
@@ -1093,14 +1052,6 @@ fun! s:finish(pull)
     call s:finish_bindings()
 endf
 
-fun! s:retry()
-    if empty(s:update.errors)
-        return
-    en
-    echo
-    call s:update_impl(s:update.pull, s:update.force,
-                \ extend(copy(s:update.errors), [s:update.threads]))
-endf
 
 fun! s:is_managed(name)
     return has_key(g:plugs[a:name], 'uri')
@@ -1112,6 +1063,9 @@ endf
 
 
 fun! s:update_impl(pull, force, args) abort
+    "\ sync: block the control until the update/install is finished
+    "\ 和async相反
+    "\ 导致无法连接github时卡死
     let sync = index(a:args, '--sync') >= 0
        \ || has('vim_starting')
 
@@ -1127,7 +1081,9 @@ fun! s:update_impl(pull, force, args) abort
             \ ? filter(managed, '!v:val.frozen || !isdirectory(v:val.dir)')
             \ : filter(managed, 'index(args, v:key) >= 0' )
 
-    if empty(todo)  | return s:warn('echo', 'No plugin to ' . (a:pull ? 'update' : 'install'))  | en
+    if empty(todo)
+        return s:warn('echo',    'No plugin to ' . (a:pull ? 'update' : 'install'))
+    en
 
     if !s:is_win && s:git_version_requirement(2, 3)
         let s:git_terminal_prompt = exists('$GIT_TERMINAL_PROMPT')
@@ -1149,25 +1105,24 @@ fun! s:update_impl(pull, force, args) abort
             call mkdir(g:plug_home, 'p')
         catch
             return s:err(printf('Invalid plug directory: %s. ' .
-                       \ 'Try to call plug#begin with a valid directory', g:plug_home))
+                       \ 'Try to call plug#begin with a valid directory', g:plug_home)
+                \)
         endtry
     en
 
-    let use_job = s:nvim || s:vim8
-    echom "use_job 是: "   use_job
-
     let s:update = {
-        \ 'start':   reltime(),
-        \ 'all':     todo,
-        \ 'todo':    copy(todo),
-        \ 'errors':  [],
-        \ 'pull':    a:pull,
-        \ 'force':   a:force,
-        \ 'new':     {},
-        \ 'threads': min([len(todo), threads]),
-        \ 'bar':     '',
-        \ 'fin':     0
-    \ }
+            \ 'start'   :  reltime()                 ,
+            \ 'all'     :  todo                      ,
+            \ 'todo'    :  copy(todo)                ,
+            \ 'errors'  :  []                        ,
+            \ 'pull'    :  a:pull                    ,
+            \ 'force'   :  a:force                   ,
+            \ 'new'     :  {}                        ,
+            \ 'threads' :  min([len(todo), threads]) ,
+            \ 'bar'     :  ''                        ,
+            \ 'OK'      :  0                         ,
+            \ 'fin'     :  0
+           \ }
 
     call s:prepare(1)
     call append(0, ['', ''])
@@ -1194,11 +1149,31 @@ fun! s:update_impl(pull, force, args) abort
                     \ : ''
 
     call s:update_vim()
-    while use_job && sync
+    while  sync
         sleep 100m
         if s:update.OK  | break  | en
     endwhile
 endf
+
+    fun! s:install(force, names)
+        call s:update_impl(0, a:force, a:names)
+    endf
+
+    fun! s:update(force, names)
+        call s:update_impl(1, a:force, a:names)
+    endf
+
+    fun! s:retry()
+        if empty(s:update.errors)  | return  | en
+        echo ''
+        call s:update_impl(
+                  \ s:update.pull,
+                  \ s:update.force,
+                  \ extend( copy(s:update.errors),  [s:update.threads] ),
+                 \ )
+    endf
+
+
 
 fun! s:log4(name, msg)
     call setline(4, printf('- %s (%s)', a:msg, a:name))
@@ -1278,16 +1253,12 @@ fun! s:update_finish()
 endf
 
 fun! s:job_abort()
-    if (!s:nvim && !s:vim8) || !exists('s:jobs')
+    if  !exists('s:jobs')
         return
     en
 
     for [name, j] in items(s:jobs)
-        if s:nvim
-            silent! call jobstop(j.jobid)
-        elseif s:vim8
-            silent! call job_stop(j.jobid)
-        en
+        silent! call jobstop(j.jobid)
         if j.new
             call s:rm_rf(g:plugs[name].dir)
         en
@@ -1333,6 +1304,7 @@ fun! s:job_cb(fn, job, ch, data)
     call call(a:fn, [a:job, a:data])
 endf
 
+"\ call back吗
 fun! s:nvim_cb(job_id, data, event) dict abort
 
     return (a:event == 'stdout' || a:event == 'stderr')
@@ -1340,56 +1312,29 @@ fun! s:nvim_cb(job_id, data, event) dict abort
         \ :   s:job_cb('s:job_exit_cb', self, 0, a:data)
 endf
 
-"\ _cb 是spawn的谐音?
 fun! s:spawn(name, cmd, opts)
     let job = { 'name': a:name, 'running': 1, 'error': 0, 'lines': [''],
                         \ 'new': get(a:opts, 'new', 0) }
     let s:jobs[a:name] = job
 
-    if s:nvim
-        if has_key(a:opts, 'dir')
-            let job.cwd = a:opts.dir
-        en
-        let argv = a:cmd
-        call extend(job, {
-        \ 'on_stdout' :  function('s:nvim_cb'),
-        \ 'on_stderr' :  function('s:nvim_cb'),
-        \ 'on_exit'   :  function('s:nvim_cb'),
-        \ })
+    if has_key(a:opts, 'dir')
+        let job.cwd = a:opts.dir
+    en
+    let argv = a:cmd
+    call extend(job, {
+    \ 'on_stdout' :  function('s:nvim_cb'),
+    \ 'on_stderr' :  function('s:nvim_cb'),
+    \ 'on_exit'   :  function('s:nvim_cb'),
+    \ })
 
-        let jid = s:plug_call('jobstart', argv, job)
-        if jid > 0
-            let job.jobid = jid
-        el
-            let job.running = 0
-            let job.error   = 1
-            let job.lines   = [jid < 0 ? argv[0].' is not executable' :
-                        \ 'Invalid arguments (or job table is full)']
-        en
-    elseif s:vim8
-        let cmd = join(map(copy(a:cmd), 'plug#shellescape(v:val, {"script": 0})'))
-        if has_key(a:opts, 'dir')
-            let cmd = s:with_cd(cmd, a:opts.dir, 0)
-        en
-        let argv = s:is_win ? ['cmd', '/s', '/c', '"'.cmd.'"'] : ['sh', '-c', cmd]
-        let jid = job_start(s:is_win ? join(argv, ' ') : argv, {
-        \ 'out_cb':   function('s:job_cb', ['s:job_out_cb',  job]),
-        \ 'err_cb':   function('s:job_cb', ['s:job_out_cb',  job]),
-        \ 'exit_cb':  function('s:job_cb', ['s:job_exit_cb', job]),
-        \ 'err_mode': 'raw',
-        \ 'out_mode': 'raw'
-        \})
-        if job_status(jid) == 'run'
-            let job.jobid = jid
-        el
-            let job.running = 0
-            let job.error   = 1
-            let job.lines   = ['Failed to start job']
-        en
+    let jid = s:plug_call('jobstart', argv, job)
+    if jid > 0
+        let job.jobid = jid
     el
-        let job.lines = s:lines(call('s:system', has_key(a:opts, 'dir') ? [a:cmd, a:opts.dir] : [a:cmd]))
-        let job.error = v:shell_error != 0
         let job.running = 0
+        let job.error   = 1
+        let job.lines   = [jid < 0 ? argv[0].' is not executable' :
+                    \ 'Invalid arguments (or job table is full)']
     en
 endf
 
@@ -1477,7 +1422,7 @@ endf
 
 fun! s:tick()
     let pull = s:update.pull
-    let prog = s:progress_opt(s:nvim || s:vim8)
+    let prog = s:progress_opt( 1 )
 
     "\ total cost of ownership
     while 1 " Without TCO, Vim stack is bound to explode
@@ -1568,8 +1513,6 @@ fun! plug#shellescape(arg, ...)
     let script = get(opts, 'script', 1)
     if shell =~# 'cmd\(\.exe\)\?$'
         return s:shellesc_cmd(a:arg, script)
-    elseif s:is_powershell(shell)
-        return s:shellesc_ps1(a:arg)
     en
     return s:shellesc_sh(a:arg)
 endf
@@ -1616,13 +1559,10 @@ fun! s:system(cmd, ...)
             " Neovim's system() supports list argument to bypass the shell
             " but it cannot set the working directory for the command.
             " Assume that the command does not rely on the shell.
-            if has('nvim') && a:0 == 0
+            if  a:0 == 0
                 return system(a:cmd)
             en
             let cmd = join(map(copy(a:cmd), 'plug#shellescape(v:val, {"shell": &shell, "script": 0})'))
-            if s:is_powershell(&shell)
-                let cmd = '& ' . cmd
-            en
         el
             let cmd = a:cmd
         en
@@ -1704,7 +1644,7 @@ fun! s:git_validate(spec, check_branch)
     el
         let err = 'Not found'
     en
-    return [err, err =~# 'PlugClean']
+    return [ err,  err =~# 'PlugClean']
 endf
 
 fun! s:rm_rf(dir)
@@ -2138,4 +2078,3 @@ en
 
 let &cpo = s:cpo_save  | unlet s:cpo_save
 
-"\ echom '结束/home/wf/.local/share/nvim/plugged/plug-vim/plug.vim'
