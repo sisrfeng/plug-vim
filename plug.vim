@@ -610,7 +610,15 @@ fun! plug#(repo, ...)
     if a:0 > 1  | return s:err('只能有1或2个参数')  | en
 
     try
-        let repo = s:end_slash(a:repo)
+        "\ let repo = s:end_slash(a:repo)
+        "\ 被下面的代替了:----
+        let repo = a:repo
+        if repo =~ 'llwwff' && repo !~ 'gitee.com/'
+            let repo = 'https://gitee.com/' . repo
+        en
+        let repo = s:end_slash(repo)
+        "\ ----
+
         let opts = a:0 == 1
                 \ ? s:parse_options(a:1)
                 \ : s:base_spec
