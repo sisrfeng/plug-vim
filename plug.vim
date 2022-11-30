@@ -1,4 +1,6 @@
 " https://github.com/junegunn/vim-plug
+"\ 删掉了对windows的支持, 精简代码
+
 " Copyright (c) 2017 Junegunn Choi
     " MIT License
 
@@ -119,21 +121,9 @@ fun! s:git_origin_branch(spec)
         \ : result[-1]
 endf
 
-if s:is_win
-    fun! s:plug_call(fn, ...)
-        let shellslash = &shellslash
-        try
-            set noshellslash
-            return call(a:fn, a:000)
-        finally
-            let &shellslash = shellslash
-        endtry
-    endf
-el
-    fun! s:plug_call(fn, ...)
-        return call(a:fn, a:000)
-    endf
-en
+fun! s:plug_call(fn, ...)
+    return call(a:fn, a:000)
+endf
 
 fun! s:plug_getcwd()
     return s:plug_call('getcwd')
@@ -617,14 +607,19 @@ endf
 
 fun! plug#(repo, ...)
     "\ echom      '进入函数    plug#(repo, ...) '
-    if a:0 > 1
-        return s:err('Invalid number of arguments (1..2)')
-    en
+    if a:0 > 1  | return s:err('只能有1或2个参数')  | en
 
     try
         let repo = s:end_slash(a:repo)
-        let opts = a:0 == 1 ? s:parse_options(a:1) : s:base_spec
-        let name = get(opts, 'as', s:plug_fnamemodify(repo, ':t:s?\.git$??'))
+        let opts = a:0 == 1
+                \ ? s:parse_options(a:1)
+                \ : s:base_spec
+        let name = get(opts, 'as',  s:plug_fnamemodify(repo, ':t:s?\.git$??'))
+                       "\ Example:
+                       "\         :echo fnamemodify("main.c", ":p:h")
+                       "\     results in:
+                       "\         /home/mool/vim/vim/src
+
         let spec = extend(s:infer_properties(name, repo), opts)
         if !has_key(g:plugs, name)
             call add(g:plugs_order, name)
@@ -678,17 +673,19 @@ fun! s:infer_properties(name, repo)
     let repo = a:repo
     if s:is_local_plug(repo)
         return { 'dir': s:dirpath(s:plug_expand(repo)) }
+
     el
-        if repo =~ ':'
+        if repo =~ ':'  "\ git@github:XXXX ?
             let uri = repo
         el
             if repo !~ '/'
                 throw printf('Invalid argument: %s (implicit `vim-scripts'' expansion is deprecated)', repo)
             en
+
             let fmt = get(g:, 'plug_url_format', 'https://git::@github.com/%s.git')
             let uri = printf(fmt, repo)
         en
-        return { 'dir': s:dirpath(g:plug_home.'/'.a:name), 'uri': uri }
+        return { 'dir': s:dirpath(g:plug_home . '/' . a:name), 'uri': uri }
     en
 endf
 
@@ -1087,9 +1084,13 @@ fun! s:update_impl(pull, force, args) abort
 
     if !s:is_win && s:git_version_requirement(2, 3)
         let s:git_terminal_prompt = exists('$GIT_TERMINAL_PROMPT')
-                                       \? $GIT_TERMINAL_PROMPT
-                                      \ : ''
+                                       \ ? $GIT_TERMINAL_PROMPT
+                                       \ : ''
         let $GIT_TERMINAL_PROMPT = 0
+        "\ 修改shell的环境变量  GIT_TERMINAL_PROMPT:
+            "\ If this environment variable is set to 0,
+            "\ git will not prompt on the terminal (e.g.,  when asking for HTTP authentication).
+
         for plug in values(todo)
             let plug.uri = substitute(
                                  \ plug.uri,

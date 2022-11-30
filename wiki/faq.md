@@ -85,16 +85,29 @@ Plug 'kana/vim-textobj-user'
 - In the rare case where plugins do overwrite commands or mappings, vim-plug requires you to manually reorder your plugins.
 
 ### What's the deal with `git::@` in the URL?
+git::@是作者整出来的, 不是git或github的语法
 
-When vim-plug clones a repository, it injects `git::@` into the URL (e.g. `https://git::@github.com/junegunn/seoul256.vim.git`) which can be an issue when you want to push some changes back to the remote. So why?
-
-It's a little hack to avoid username/password prompt from git when the repository doesn't exist. Such thing can happen when there's a typo in the argument, or when the repository is removed from GitHub. It looks kind of silly, but doing so is the only way I know that works on various versions of git. However, Git 2.3.0 introduced `$GIT_TERMINAL_PROMPT` which can be used to suppress user prompt, and vim-plug takes advantage of it and removes `git::@` when Git 2.3.0 or above is found.
+When vim-plug clones a repository,
+    it injects `git::@` into the URL (e.g.  `https://git::@github.com/junegunn/seoul256.vim.git`)
+    which can be an issue 
+    when you want to push some changes back to the remote.
+So why? 
+    It's a ¿little hack¿ to avoid username/password prompt from git 
+        when the repository ¿doesn't exist¿.
+            Such thing can happen when there's a typo in the argument,
+            or when the repository is removed from GitHub.
+    It looks kind of silly,
+    but doing so is the only way I know that
+    works on various versions of git.
+However,
+    Git 2.3.0 introduced `$GIT_TERMINAL_PROMPT` which can be used to  suppress user prompt,
+    and vim-plug takes advantage of it and
+    removes `git::@` when Git 2.3.0 or  above is found.
 
 Also, there are two ways to override the default URL pattern:
 
 1. Using full git url: `Plug 'https://github.com/junegunn/seoul256.vim.git'`
-2. Or define `g:plug_url_format` for the plugins that you need to work on.
-
+2. Or define `g:plug_url_format` for the plugins that you need to ¿work on¿. 
 ```vim
 let g:plug_url_format = 'git@github.com:%s.git'
 Plug 'junegunn/vim-easy-align'
