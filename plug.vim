@@ -1,5 +1,6 @@
 " https://github.com/junegunn/vim-plug
 "\ 删掉了对windows的支持, 精简代码
+"\ llwwff/某repo, 会自动加上https:/gitee.com/
 
 " Copyright (c) 2017 Junegunn Choi
     " MIT License
